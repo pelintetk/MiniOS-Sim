@@ -1,0 +1,12 @@
+# Compiled executable
+/minios
+
+# Object files
+*.o
+
+# Core dump files
+core
+core.*
+
+# VS Code settings
+.vscode/

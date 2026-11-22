@@ -10,3 +10,6 @@ core.*
 
 # VS Code settings
 .vscode/
+
+/parser_demo
+/pcb_demo

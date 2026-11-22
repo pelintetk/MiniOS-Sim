@@ -6,7 +6,7 @@ int main(void) {
     PCB processes[10] = {0};
 
     int count = load_workload(
-        "tests/sched-basic.txt",
+        "tests/sched-io.txt",
         processes,
         10
     );
@@ -18,13 +18,17 @@ int main(void) {
     printf("Loaded %d processes\n", count);
 
     for (int i = 0; i < count; i++) {
-        printf(
-            "%s arrival=%d priority=%d cpu=%d\n",
-            processes[i].pid,
-            processes[i].arrival_time,
-            processes[i].priority,
-            processes[i].bursts[0]
-        );
+        printf("%s: ", processes[i].pid);
+
+        for (int j = 0; j < processes[i].burst_count; j++) {
+            if (j % 2 == 0) {
+                printf("CPU=%d ", processes[i].bursts[j]);
+            } else {
+                printf("IO=%d ", processes[i].bursts[j]);
+            }
+        }
+
+        printf("\n");
     }
 
     return 0;

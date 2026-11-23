@@ -36,4 +36,35 @@ typedef struct {
     ProcessState state;
 } PCB;
 
+
+typedef struct {
+    int items[MAX_PROCESSES];
+    int front;
+    int rear;
+    int size;
+} ReadyQueue;
+
+void queue_init(ReadyQueue *queue);
+int queue_push(ReadyQueue *queue, int process_index);
+int queue_pop(ReadyQueue *queue);
+
+typedef enum {
+    POLICY_FCFS,
+    POLICY_SJF,
+    POLICY_SRTF,
+    POLICY_PRIORITY,
+    POLICY_RR
+} SchedulingPolicy;
+
+typedef struct {
+    SchedulingPolicy policy;
+    int quantum;
+    int context_switch_cost;
+    int aging_interval;
+    int trace_enabled;
+} SchedulerConfig;
+
+int run_scheduler(PCB processes[], int count,
+                  const SchedulerConfig *config);
+
 #endif

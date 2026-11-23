@@ -2,7 +2,10 @@
 CC = gcc
 CFLAGS = -std=c11 -Wall -Wextra -pthread
 TARGET = minios
-SRC = src/main.c
+
+SRC = src/main.c \
+      src/sched/parser.c \
+      src/sched/scheduler.c
 
 .PHONY: all clean
 

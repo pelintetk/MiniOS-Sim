@@ -6,6 +6,8 @@
 #define MAX_BURSTS 21
 #define MAX_PID_LENGTH 32
 
+#define MAX_SEGMENTS 10000
+
 typedef enum {
     NEW,
     READY,
@@ -63,6 +65,12 @@ typedef struct {
     int aging_interval;
     int trace_enabled;
 } SchedulerConfig;
+
+typedef struct {
+    int process_index;
+    int start;
+    int end;
+} GanttSegment;
 
 int run_scheduler(PCB processes[], int count,
                   const SchedulerConfig *config);

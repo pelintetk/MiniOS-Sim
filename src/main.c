@@ -29,14 +29,6 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    for (int i = 0; i < count; i++) {
-        if (processes[i].burst_count != 1) {
-            fprintf(stderr,
-                    "Error: I/O scheduling not implemented yet\n");
-            return 1;
-        }
-    }
-
     SchedulerConfig config = {
         .policy = POLICY_FCFS,
         .quantum = 4,

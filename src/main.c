@@ -5,10 +5,10 @@
 #include "sched/scheduler.h"
 
 int main(int argc, char *argv[]) {
+    
     if (argc != 5 ||
         strcmp(argv[1], "sched") != 0 ||
-        strcmp(argv[2], "-a") != 0 ||
-        strcmp(argv[3], "fcfs") != 0) {
+        strcmp(argv[2], "-a") != 0) {
 
         fprintf(stderr, "Error: invalid arguments\n");
         return 1;
@@ -29,8 +29,19 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
+    SchedulingPolicy selected_policy;
+
+    if (strcmp(argv[3], "fcfs") == 0) {
+        selected_policy = POLICY_FCFS;
+    } else if (strcmp(argv[3], "sjf") == 0) {
+        selected_policy = POLICY_SJF;
+    } else {
+        fprintf(stderr, "Error: unsupported algorithm\n");
+        return 1;
+    }
+
     SchedulerConfig config = {
-        .policy = POLICY_FCFS,
+        .policy = selected_policy,
         .quantum = 4,
         .context_switch_cost = 0,
         .aging_interval = 0,

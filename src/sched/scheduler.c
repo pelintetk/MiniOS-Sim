@@ -1,5 +1,6 @@
 
 #include <stdio.h>
+#include <string.h>
 #include "scheduler.h"
 
 // =======================
@@ -70,8 +71,72 @@ static void change_state(PCB *process, ProcessState new_state,
 // FCFS POLICY
 // =======================
 
+static void sort_process_indices_by_pid(
+    int indices[], int count, const PCB processes[]) {
+
+    for (int i = 0; i < count - 1; i++) {
+        for (int j = i + 1; j < count; j++) {
+            if (strcmp(processes[indices[i]].pid,
+                       processes[indices[j]].pid) > 0) {
+
+                int temp = indices[i];
+                indices[i] = indices[j];
+                indices[j] = temp;
+            }
+        }
+    }
+}
+
 static int pick_next_fcfs(ReadyQueue *queue) {
     return queue_pop(queue);
+}
+
+static int pick_next_sjf(ReadyQueue *queue, PCB processes[]) {
+    if (queue->size == 0) {
+        return -1;
+    }
+
+    int best_position = 0;
+
+    for (int i = 1; i < queue->size; i++) {
+        int pos = (queue->front + i) % MAX_PROCESSES;
+        int best_pos = (queue->front + best_position) % MAX_PROCESSES;
+
+        int current = queue->items[pos];
+        int best = queue->items[best_pos];
+
+        if (processes[current].remaining_time <
+                processes[best].remaining_time ||
+            (processes[current].remaining_time ==
+                processes[best].remaining_time &&
+            processes[current].ready_entry_time <
+                processes[best].ready_entry_time) ||
+            (processes[current].remaining_time ==
+                processes[best].remaining_time &&
+            processes[current].ready_entry_time ==
+                processes[best].ready_entry_time &&
+            strcmp(processes[current].pid,
+                    processes[best].pid) < 0)) {
+
+            best_position = i;
+        }
+
+    }
+
+    int best_pos = (queue->front + best_position) % MAX_PROCESSES;
+    int selected = queue->items[best_pos];
+
+    for (int i = best_position; i < queue->size - 1; i++) {
+        int from = (queue->front + i + 1) % MAX_PROCESSES;
+        int to = (queue->front + i) % MAX_PROCESSES;
+
+        queue->items[to] = queue->items[from];
+    }
+
+    queue->rear = (queue->rear - 1 + MAX_PROCESSES) % MAX_PROCESSES;
+    queue->size--;
+
+    return selected;
 }
 
 // =======================
@@ -172,13 +237,13 @@ static void print_metrics(const PCB processes[], int count, int total_time,
 
 // =======================
 // SHARED SCHEDULING ENGINE
-// CURRENTLY SUPPORTS FCFS
 // =======================
 
 int run_scheduler(PCB processes[], int count,
                   const SchedulerConfig *config) {
     if (count <= 0 || count > MAX_PROCESSES ||
-        config == NULL || config->policy != POLICY_FCFS) {
+        config == NULL ||
+        (config->policy != POLICY_FCFS && config->policy != POLICY_SJF)) {
         return 1;
     }
 
@@ -195,7 +260,16 @@ int run_scheduler(PCB processes[], int count,
     while (completed < count) {
 
         // 1. Move arriving and I/O-completed processes to READY
+        int ordered_indices[MAX_PROCESSES];
+
         for (int i = 0; i < count; i++) {
+            ordered_indices[i] = i;
+        }
+
+        sort_process_indices_by_pid(ordered_indices, count, processes);
+
+        for (int k = 0; k < count; k++) {
+            int i = ordered_indices[k];
             PCB *p = &processes[i];
 
             if (p->state == NEW && p->arrival_time == clock) {
@@ -223,7 +297,11 @@ int run_scheduler(PCB processes[], int count,
 
         // 2. Dispatch if CPU is free
         if (running == -1 && queue.size > 0) {
-            running = pick_next_fcfs(&queue);
+            if (config->policy == POLICY_SJF) {
+                running = pick_next_sjf(&queue, processes);
+            } else {
+                running = pick_next_fcfs(&queue);
+            }
 
             PCB *p = &processes[running];
 
